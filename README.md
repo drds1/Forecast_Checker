@@ -29,6 +29,9 @@ and impose a cut-off threshold above which we consider the forecast performance 
 
 ### Example Output
 
+##### Iterative Correlation Plot
 ![Iterative Correlation Plot](https://github.com/dstarkey23/Forecast_Checker/blob/master/images/test_eval_plot.png)
 
+
+##### Synthetic Timeseries Decomposition (ARIMA + Exogoneous Variables + Simple Forecast)
 ![Synthetic Timeseries](https://github.com/dstarkey23/Forecast_Checker/blob/master/images/arima_test.png)
