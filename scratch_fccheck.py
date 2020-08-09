@@ -63,3 +63,37 @@ if __name__ == '__main__':
 
 
 
+    '''
+    Evaluate the performance
+    as correlation coefficient vs step size
+    '''
+    ep = evaluate_performance(eXog_test, y_test, model=Custom_ARIMA,
+                 kwargs_for_model={'round':False},
+                 kwargs_for_fit={'parms': (2, 0, 2)},
+                 kwargs_for_predict={'steps': 10},
+                 verbose=False, Nsteps=10, Ntests=10)
+    ep.evaluate()
+    ep.make_performance_plot(file='test_eval_plot.png')
+
+
+    #evaluations = evaluate_performance(eXog_test, y_test, model=Custom_ARIMA,
+    #                     kwargs_for_model={'round':False},
+    #                     kwargs_for_fit={'parms': (2, 0, 2)},
+    #                     kwargs_for_predict={'steps': 10},
+    #                     verbose=False, Nsteps=10, Ntests=10)
+    #evaluation_times = evaluations['times']
+    #evaluation_truths = evaluations['truths']
+    #evaluation_pred = evaluations['pred']
+    #correlations = evaluations['correlations']
+#
+    ## make diagnostic plots
+    #truths = evaluation_truths
+    #pred = evaluation_pred
+    #correlations = truths.corrwith(pred, axis=1)
+    #residue = pred - truths
+    #plt.close()
+    #plot_performance = plot_performance_evaluator(truths=truths, pred=pred)
+    #plot_performance.make_plots(step_plots=[0, 4, 9], figure='test_eval_plot.png')
+#
+#
+#

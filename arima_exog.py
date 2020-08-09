@@ -127,70 +127,109 @@ class Custom_ARIMA:
 
 
 
-def evaluate_performance(X, y, model=Custom_ARIMA(round=True),
-                         kwargs_for_model={},
-                         kwargs_for_fit={'parms':(2,0,2)},
-                         kwargs_for_predict={'steps':10},
-                         verbose = False,Nsteps = 10,Ntests = 10):
-    '''
-    go back in time and refit the model comparing with reality
-    all input models should have a 'steps' argument in their predict functions
-    This Must be the same as the 'Nsteps' input argument here example default arguments
-    correct for the customarima code above
+class evaluate_performance:
+    def __init__(self, eXog, y, model=Custom_ARIMA,
+                             kwargs_for_model={},
+                             kwargs_for_fit={'parms':(2,0,2)},
+                             kwargs_for_predict={'steps':10},
+                             verbose = False,Nsteps = 10,Ntests = 10):
+        self.eXog = eXog
+        self.y = y
+        self.model = model
+        self.kwargs_for_model = kwargs_for_model
+        self.kwargs_for_fit = kwargs_for_fit
+        self.kwargs_for_predict = kwargs_for_predict
+        self.verbose = verbose
+        self.Nsteps = Nsteps
+        self.Ntests = Ntests
+        self.evaluation = None
 
-    :return:
-    '''
-    kwargs_for_predict['steps'] = Nsteps
-    eXog = X
-    Ny = len(y)
-    #initialise the output results dataframe
-    output = {}
-    output['t'] = np.arange(Ny)
-    output['y'] = y
-    output = pd.DataFrame(output)
-    output = output.set_index('t')
-    output_truths = {}
-    output_times = {}
-    output_pred = {}
-    #run the cross validation
-    Ntestsmax = min(Ny/2 - Nsteps,Ntests)
-    for i in range(Ntestsmax):
-        if verbose is True:
-            print('running test '+str(i+1)+' of '+str(Ntestsmax))
-        lab = 'test '+str(i)
-        idxlo = Ny - Nsteps - i
-        ttest = np.arange(idxlo,Ny)
-        #prep the y variable
-        yin = y[:idxlo]
-        ytrue = y[idxlo:idxlo+Nsteps]
-        output_times[lab] = ttest[:Nsteps]
-        output_truths[lab] = ytrue
-        #prep the exogenious variables
-        if eXog is not None:
-            exin = eXog[:idxlo,:]
-            extest = eXog[idxlo:,:]
-        else:
-            exin = None
-            extest = None
+    def evaluate(self):
+        '''
+        go back in time and refit the model comparing with reality
+        all input models should have a 'steps' argument in their predict functions
+        This Must be the same as the 'Nsteps' input argument here example default arguments
+        correct for the customarima code above
+        :return:
+        '''
+        eXog = self.eXog
+        y = self.y
+        model = self.model
+        kwargs_for_model = self.kwargs_for_model
+        kwargs_for_fit = self.kwargs_for_fit
+        kwargs_for_predict = self.kwargs_for_predict
+        verbose = self.verbose
+        Nsteps = self.Nsteps
+        Ntests = self.Ntests
 
-        cltemp = model(**kwargs_for_model)
-        cltemp.fit(exin, yin,**kwargs_for_fit)
-        y_pred = cltemp.predict(extest, **kwargs_for_predict)
-        #cltemp = model
-        #cltemp.fit(yin, eXog=exin, parms=parms)
-        #y_pred = cltemp.predict(Ny - idxlo, eXog=extest)
-        output_pred[lab] = y_pred[:Nsteps]
-        output[lab] = np.nan
-        output.loc[ttest,lab] = y_pred
 
-    evaluation = {}
-    evaluation['output'] = output
-    evaluation['residue'] =  output.sub(output['y'], axis='rows').iloc[:,1:]
-    evaluation['truths'] = pd.DataFrame(output_truths)
-    evaluation['times'] = pd.DataFrame(output_times)
-    evaluation['pred'] = pd.DataFrame(output_pred)
-    return evaluation
+        kwargs_for_predict['steps'] = Nsteps
+        Ny = len(y)
+        #initialise the output results dataframe
+        output = {}
+        output['t'] = np.arange(Ny)
+        output['y'] = y
+        output = pd.DataFrame(output)
+        output = output.set_index('t')
+        output_truths = {}
+        output_times = {}
+        output_pred = {}
+        #run the cross validation
+        Ntestsmax = min(Ny/2 - Nsteps,Ntests)
+        for i in range(Ntestsmax):
+            if verbose is True:
+                print('running test '+str(i+1)+' of '+str(Ntestsmax))
+            lab = 'test '+str(i)
+            idxlo = Ny - Nsteps - i
+            ttest = np.arange(idxlo,idxlo+Nsteps)
+            #prep the y variable
+            yin = y[:idxlo]
+            ytrue = y[idxlo:idxlo+Nsteps]
+            output_times[lab] = ttest[:Nsteps]
+            output_truths[lab] = ytrue
+            #prep the exogenious variables
+            if eXog is not None:
+                exin = eXog[:idxlo,:]
+                extest = eXog[idxlo:idxlo+Nsteps,:]
+            else:
+                exin = None
+                extest = None
 
+            cltemp = model(**kwargs_for_model)
+            cltemp.fit(yin,eXog=exin,**kwargs_for_fit)
+            y_pred = cltemp.predict(eXog=extest,**kwargs_for_predict)
+            output_pred[lab] = y_pred[:Nsteps]
+            output[lab] = np.nan
+            output.loc[ttest,lab] = y_pred
+
+        evaluation = {}
+        evaluation['output'] = output
+        evaluation['residue'] =  output.sub(output['y'], axis='rows').iloc[:,1:]
+        evaluation['truths'] = pd.DataFrame(output_truths)
+        evaluation['times'] = pd.DataFrame(output_times)
+        evaluation['pred'] = pd.DataFrame(output_pred)
+        evaluation['correlations'] = evaluation['truths'].corrwith(evaluation['pred'], axis=1)
+        self.evaluation = evaluation
+        return evaluation
+
+    def make_performance_plot(self, file = 'test_eval_plot.png', step_plots = [0, 4, 9]):
+        '''
+        express the evaluate dictionary as a plot
+        to show the forecaster performance
+        :return:
+        '''
+        evaluation_times = self.evaluation['times']
+        evaluation_truths = self.evaluation['truths']
+        evaluation_pred = self.evaluation['pred']
+
+        # make diagnostic plots
+        truths = evaluation_truths
+        pred = evaluation_pred
+        correlations = truths.corrwith(pred, axis=1)
+        residue = pred - truths
+        plt.close()
+        plot_performance = plot_performance_evaluator(truths=truths, pred=pred)
+        plot_performance.make_plots(step_plots=step_plots, figure=file)
 
 class plot_performance_evaluator:
     def __init__(self, truths, pred):
