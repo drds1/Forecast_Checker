@@ -229,7 +229,7 @@ class evaluate_performance:
         residue = pred - truths
         plt.close()
         plot_performance = plot_performance_evaluator(truths=truths, pred=pred)
-        plot_performance.make_plots(step_plots=step_plots, figure=file)
+        plot_performance.make_plots(step_plots=[s - 1 for s in step_plots], figure=file)
 
 class plot_performance_evaluator:
     def __init__(self, truths, pred):
