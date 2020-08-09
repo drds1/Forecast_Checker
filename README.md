@@ -1,7 +1,7 @@
 # Forecast Performance Analysis
 
 ## Intro
-These notebooks make use of a python package I developed to 
+These notebooks make use of a python package built to 
 interpret the performance of a timeseries forecaster. 
 
 Typically, when forecasting a timeseries, we want to understand the performance of 
