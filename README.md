@@ -25,3 +25,8 @@ This package (installable from PyPi `pip install forecast_checker`) ingests a ti
 for various forecast step sizes by iteratively chopping-off the final data point from the timeseries, forecasting the future and repeating
 for different forecast step sizes. This allows us to calculate the correlation coefficient as a function of forecast length
 and impose a cut-off threshold above which we consider the forecast performance too low to base a prediction.
+
+
+### Example Output
+
+[Iterative Correlation Plot](https://github.com/dstarkey23/Forecast_Checker/blob/master/images/test_eval_plot.png)
