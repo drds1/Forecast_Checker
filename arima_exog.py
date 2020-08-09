@@ -5,13 +5,16 @@ import matplotlib.pylab as plt
 import pandas as pd
 
 
+
+
+
 class Custom_ARIMA:
     '''
     version of stats models to both generate synthetic data
     and fit an arima model with or without exogenous variables
     '''
 
-    def __init__(self, seed= 12345, round = True):
+    def __init__(self, seed= 12345, round = False):
         np.random.seed(seed)
         self.model = None
         self.round = round
@@ -249,6 +252,31 @@ class plot_performance_evaluator:
         plt.tight_layout()
         plt.savefig(figure)
 
+
+def generate_synthetic_data(polynomial_exog_coef = [0.0,0.005],
+                            Nepochs = 1000,
+                            forecast_step = 200,
+                            synthetic_class = Custom_ARIMA(seed=12345),
+                            synthetic_kwargs = {'arparms':[0.75, -0.25],
+                                                'maparms':[0.65, 0.35]}):
+
+    # generate arma part of test timeseries
+    y_test_arima = synthetic_class.generate_test_arima(number_of_epochs=Nepochs + forecast_step,
+                                          **synthetic_kwargs)
+
+    # simulate polynomial exogenious variables using polynomial coefficients
+    xex = np.arange(Nepochs + forecast_step)
+    yex = np.zeros(Nepochs + forecast_step)
+    eXog_test = np.zeros((Nepochs + forecast_step, len(polynomial_exog_coef)))
+    for i in range(len(polynomial_exog_coef)):
+        eXog_test[:, i] = xex ** i
+        yex += polynomial_exog_coef[i] * eXog_test[:, i]
+    y_test = y_test_arima + yex
+
+    return {'y_full':y_test,
+            'y_arima':y_test_arima,
+            'y_eXog':yex,
+            'eXog_features':eXog_test}
 
 
 if __name__ == '__main__':
