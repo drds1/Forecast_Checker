@@ -5,7 +5,11 @@ import matplotlib.pylab as plt
 import pandas as pd
 
 
-class Super_ARIMA:
+class Custom_ARIMA:
+    '''
+    version of stats models to both generate synthetic data
+    and fit an arima model with or without exogenous variables
+    '''
 
     def __init__(self, seed= 12345, round = True):
         np.random.seed(seed)
@@ -13,18 +17,18 @@ class Super_ARIMA:
         self.round = round
 
     def generate_test_arima(self,
-                            test_N = 250,
+                            number_of_epochs = 250,
                             arparms = [0.75, -0.25],
                             maparms = [0.65, 0.35]):
         arp = np.array(arparms)
         map = np.array(maparms)
         ar = np.r_[1, -arp] # add zero-lag and negate
         ma = np.r_[1, map] # add zero-lag
-        return arima_process.arma_generate_sample(ar, ma, test_N)
+        return arima_process.arma_generate_sample(ar, ma, number_of_epochs)
         #model = sm.tsa.ARMA(y, (2, 2)).fit(trend='nc', disp=0)
 
 
-    def fit(self,X, y,parms = (2,0,2)):
+    def fit(self, y,exog = None, parms = (2,0,2)):
         '''
         similar to standard fit predict of normal sklearn models
         but eXog not necessary
@@ -32,14 +36,13 @@ class Super_ARIMA:
         :param eXog:
         :return:
         '''
-        eXog = X
         if len(parms) == 3:
             model  = arima_model.ARIMA(y, parms,exog = eXog).fit(trend='nc', disp=0)
         elif len(parms) == 2:
             model = arima_model.ARMA(y, parms, exog=eXog).fit(trend='nc', disp=0)
         self.model = model
 
-    def predict(self, X, steps=10):
+    def predict(self, eXog, steps=10):
         '''
         predict the fited model above for N steps
         :param y:
@@ -47,7 +50,6 @@ class Super_ARIMA:
         :return:
         '''
         #assertion checks
-        eXog = X
         assert steps >= 1
         if eXog is not None:
             assert steps == np.shape(eXog)[0]
@@ -101,7 +103,7 @@ class Super_ARIMA:
                 exin = None
                 extest = None
 
-            cltemp = Super_ARIMA(round=self.round)
+            cltemp = Custom_ARIMA(round=self.round)
             cltemp.fit(exin, yin,parms = parms)
             y_pred = cltemp.predict(extest, Ny - idxlo)
             output_pred[lab] = y_pred[:Nsteps]
@@ -122,7 +124,7 @@ class Super_ARIMA:
 
 
 
-def evaluate_performance(X, y, model=Super_ARIMA(round=True),
+def evaluate_performance(X, y, model=Custom_ARIMA(round=True),
                          kwargs_for_model={},
                          kwargs_for_fit={'parms':(2,0,2)},
                          kwargs_for_predict={'steps':10},
@@ -257,7 +259,7 @@ if __name__ == '__main__':
     Nforecast = 20
 
     #instantiate class
-    cl = Super_ARIMA(seed = 12345)
+    cl = Custom_ARIMA(seed = 12345)
     cl.test_arparms = [0.75, -0.25]
     cl.test_maparms = [0.65, 0.35]
 
@@ -278,7 +280,7 @@ if __name__ == '__main__':
 
 
     #now try to fit the test time series
-    cl2 = Super_ARIMA(seed=12345)
+    cl2 = Custom_ARIMA(seed=12345)
     cl2.fit(y_test[:Ntest],eXog=eXog_test[:Ntest,:])
     y_pred = cl2.predict(steps = Nforecast, eXog=eXog_test[Ntest:, :])
 
