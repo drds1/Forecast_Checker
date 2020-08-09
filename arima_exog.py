@@ -28,7 +28,7 @@ class Custom_ARIMA:
         #model = sm.tsa.ARMA(y, (2, 2)).fit(trend='nc', disp=0)
 
 
-    def fit(self, y,exog = None, parms = (2,0,2)):
+    def fit(self, y,eXog = None, parms = (2,0,2)):
         '''
         similar to standard fit predict of normal sklearn models
         but eXog not necessary
@@ -42,10 +42,10 @@ class Custom_ARIMA:
             model = arima_model.ARMA(y, parms, exog=eXog).fit(trend='nc', disp=0)
         self.model = model
 
-    def predict(self, eXog, steps=10):
+    def predict(self, steps, eXog=None):
         '''
         predict the fited model above for N steps
-        :param y:
+        :param steps:
         :param eXog: Must (steps X Nexog features)
         :return:
         '''
@@ -104,8 +104,8 @@ class Custom_ARIMA:
                 extest = None
 
             cltemp = Custom_ARIMA(round=self.round)
-            cltemp.fit(exin, yin,parms = parms)
-            y_pred = cltemp.predict(extest, Ny - idxlo)
+            cltemp.fit(yin,eXog=exin,parms = parms)
+            y_pred = cltemp.predict(Ny - idxlo,eXog=extest)
             output_pred[lab] = y_pred[:Nsteps]
             output[lab] = np.nan
             output.loc[ttest,lab] = y_pred
@@ -133,7 +133,7 @@ def evaluate_performance(X, y, model=Custom_ARIMA(round=True),
     go back in time and refit the model comparing with reality
     all input models should have a 'steps' argument in their predict functions
     This Must be the same as the 'Nsteps' input argument here example default arguments
-    correct for the superarima code above
+    correct for the customarima code above
 
     :return:
     '''
@@ -264,7 +264,7 @@ if __name__ == '__main__':
     cl.test_maparms = [0.65, 0.35]
 
     #generate arma part of test timeseries
-    y_test_arima = cl.generate_test_arima(test_N = Ntest+Nforecast,
+    y_test_arima = cl.generate_test_arima(number_of_epochs = Ntest+Nforecast,
                             arparms = [0.75, -0.25],
                             maparms = [0.65, 0.35])
 
@@ -283,6 +283,9 @@ if __name__ == '__main__':
     cl2 = Custom_ARIMA(seed=12345)
     cl2.fit(y_test[:Ntest],eXog=eXog_test[:Ntest,:])
     y_pred = cl2.predict(steps = Nforecast, eXog=eXog_test[Ntest:, :])
+
+
+
 
 
     #plot the result predictions and test
@@ -329,4 +332,4 @@ if __name__ == '__main__':
     residue = pred - truths
     plt.close()
     plot_performance = plot_performance_evaluator(truths=truths, pred=pred)
-    plot_performance.make_plots(step_plots=[0,4,9], figure='test_eval_plot.pdf')
+    plot_performance.make_plots(step_plots=[0,4,9], figure='test_eval_plot.png')
