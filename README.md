@@ -15,13 +15,13 @@ the performance degrades to below some threshold.
 A common timeseries forecasting approach utilises a feature common to many natural and soci-economic processes:
 that the next value depends directly on the previous (auto regressive), or indirectly responds to some earlier shock (moving average). 
 We often also find that timeseries are non-stationary and required differencing or modelling of exogeneous variables.
-[This notebook]() uses a custom-built class to generate some synthetic data for timeseries modelling based on an ARMA process
+[This notebook](https://github.com/dstarkey23/Forecast_Checker/blob/master/notebooks/Forecast_Checker.ipynb) uses a custom-built class to generate some synthetic data for timeseries modelling based on an ARMA process
 with polynomial exogeneous variables.
 
 
 ## Forecast Checker
 
-this package (installable from PyPi `pip install forecast_checker`) ingests a timeseries and measures the correlation coefficient
+This package (installable from PyPi `pip install forecast_checker`) ingests a timeseries and measures the correlation coefficient
 for various forecast step sizes by iteratively chopping-off the final data point from the timeseries, forecasting the future and repeating
 for different forecast step sizes. This allows us to calculate the correlation coefficient as a function of forecast length
 and impose a cut-off threshold above which we consider the forecast performance too low to base a prediction.
