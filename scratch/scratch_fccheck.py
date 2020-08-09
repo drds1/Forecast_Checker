@@ -1,5 +1,6 @@
-from Forecast_Checker import *
-
+import Forecast_Checker as fc
+import matplotlib.pylab as plt
+import numpy as np
 
 
 
@@ -10,10 +11,10 @@ if __name__ == '__main__':
     '''
     Nepochs = 1000
     forecast_step = 200
-    synth = generate_synthetic_data(polynomial_exog_coef = [0.0,0.005],
+    synth = fc.generate_synthetic_data(polynomial_exog_coef = [0.0,0.005],
                             Nepochs = Nepochs,
                             forecast_step = forecast_step,
-                            synthetic_class = Custom_ARIMA(seed=12345),
+                            synthetic_class = fc.Custom_ARIMA(seed=12345),
                             synthetic_kwargs = {'arparms':[0.75, -0.25],
                                                 'maparms':[0.65, 0.35]})
     y_test = synth['y_full']
@@ -29,7 +30,7 @@ if __name__ == '__main__':
     The eXogenous variables must be known so only chose variables
     for which you will know the future values 
     '''
-    cl2 = Custom_ARIMA(seed=12345)
+    cl2 = fc.Custom_ARIMA(seed=12345)
     cl2.fit(y_test[:Nepochs], eXog=eXog_test[:Nepochs, :])
     y_pred = cl2.predict(steps=forecast_step, eXog=eXog_test[Nepochs:, :])
 
@@ -66,7 +67,7 @@ if __name__ == '__main__':
     Evaluate the performance
     as correlation coefficient vs step size
     '''
-    ep = evaluate_performance(eXog_test, y_test, model=Custom_ARIMA,
+    ep = fc.evaluate_performance(eXog_test, y_test, model=fc.Custom_ARIMA,
                  kwargs_for_model={'round':False},
                  kwargs_for_fit={'parms': (2, 0, 2)},
                  kwargs_for_predict={'steps': 10},
